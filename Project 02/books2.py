@@ -11,13 +11,15 @@ class Book:
     author: str
     description: str
     rating: int
+    published_date: int
 
-    def __init__(self, id, title, author, description, rating):
+    def __init__(self, id, title, author, description, rating, published_date):
         self.id = id
         self.title = title
         self.author = author
         self.description = description
         self.rating = rating
+        self.published_date = published_date
 
 
 class BookRequest(BaseModel):
@@ -26,6 +28,7 @@ class BookRequest(BaseModel):
     author: str = Field(min_length=1)
     description: str = Field(min_length=1, max_length=100)
     rating: int = Field(gt=0, lt=6)
+    published_date: int = Field(gt=0)
 
     model_config = {
         "json_schema_extra": {
@@ -34,18 +37,19 @@ class BookRequest(BaseModel):
                 "author": "codingwithdaddy",
                 "description": "A new description of a book",
                 "rating": 5,
+                "published_date": 2026,
             }
         }
     }
 
 
 BOOKS = [
-    Book(1, "Computer Science Pro", "codingwithdaddy", "A very nice book!", 5),
-    Book(2, "Be Fast with FastAPI", "codingwithdaddy", "A great book!", 5),
-    Book(3, "Master Endpoints", "codingwithdaddy", "An awesome book!", 5),
-    Book(4, "HP1", "Author 1", "Book Description", 2),
-    Book(5, "HP2", "Author 2", "Book Description", 3),
-    Book(6, "HP3", "Author 3", "Book Description", 1),
+    Book(1, "Computer Science Pro", "codingwithdaddy", "A very nice book!", 5, 2001),
+    Book(2, "Be Fast with FastAPI", "codingwithdaddy", "A great book!", 5, 1970),
+    Book(3, "Master Endpoints", "codingwithdaddy", "An awesome book!", 5, 1971),
+    Book(4, "HP1", "Author 1", "Book Description", 2, 1972),
+    Book(5, "HP2", "Author 2", "Book Description", 3, 1973),
+    Book(6, "HP3", "Author 3", "Book Description", 1, 2026),
 ]
 
 
@@ -92,3 +96,18 @@ def find_book_id(book: Book):
         book.id = 1
 
     return book
+
+
+@app.put("/books/update_books")
+async def update_book(book: BookRequest):
+    for i in range(len(BOOKS)):
+        if BOOKS[i].id == book.id:
+            BOOKS[i] = book
+
+
+@app.delete("/books/{book_id}")
+async def delete_book(book_id: int):
+    for i in range(len(BOOKS)):
+        if BOOKS[i].id == book_id:
+            BOOKS.pop(i)
+            break
