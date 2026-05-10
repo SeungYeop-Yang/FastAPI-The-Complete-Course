@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Uvicorn (books2)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "books2:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000",
+        "--app-dir",
+        "${workspaceFolder}/Project 02"
+      ],
+      "cwd": "${workspaceFolder}/Project 02",
+      "justMyCode": true
+    }
+  ]
+}
