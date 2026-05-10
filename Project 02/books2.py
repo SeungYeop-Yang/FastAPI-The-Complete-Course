@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Path, Query, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional
+from starlette import status
 
 app = FastAPI()
 
@@ -58,20 +59,21 @@ def print_pairs(**kwargs):
     print(result)
 
 
-@app.get("/books")
+@app.get("/books", status_code=status.HTTP_200_OK)
 async def read_all_books():
     return BOOKS
 
 
-@app.get("/books/{book_id}")
-async def read_book(book_id: int):
+@app.get("/books/{book_id}", status_code=status.HTTP_200_OK)
+async def read_book(book_id: int = Path(gt=0)):
     for book in BOOKS:
         if book.id == book_id:
             return book
+    raise HTTPException(status_code=404, detail=f"Book with id {book_id} not found")
 
 
-@app.get("/books/")
-async def read_book_by_rating(book_rating: int):
+@app.get("/books/", status_code=status.HTTP_200_OK)
+async def read_book_by_rating(book_rating: int = Query(gt=0, lt=6)):
     books_to_return = []
     for book in BOOKS:
         if book.rating == book_rating:
@@ -79,10 +81,19 @@ async def read_book_by_rating(book_rating: int):
     return books_to_return
 
 
-@app.post("/create-book")
+@app.get("/books/publish/", status_code=status.HTTP_200_OK)
+async def read_book_by_published_date(book_published_date: int = Query(gt=0)):
+    books_to_return = []
+    for book in BOOKS:
+        if book.published_date == book_published_date:
+            books_to_return.append(book)
+    return books_to_return
+
+
+@app.post("/create-book", status_code=status.HTTP_201_CREATED)
 async def create_book(book_request: BookRequest):
-    print(type(book_request))
-    print(book_request.model_dump())  # dict
+    # print(type(book_request))
+    # print(book_request.model_dump())  # dict
     print_pairs(**book_request.model_dump())  # key value pairs
     # new_book = Book(**book_request.dict())
     new_book = Book(**book_request.model_dump())
@@ -98,16 +109,33 @@ def find_book_id(book: Book):
     return book
 
 
-@app.put("/books/update_books")
+@app.put("/books/update_books", status_code=status.HTTP_204_NO_CONTENT)
 async def update_book(book: BookRequest):
+    book_changed = False
     for i in range(len(BOOKS)):
         if BOOKS[i].id == book.id:
-            BOOKS[i] = book
+            # If we used `BOOKS[i] = book`, we would replace a Book object
+            # with a BookRequest model instance. That would mix types in BOOKS
+            # and could break later code that expects actual Book objects.
+            # BOOKS[i] = book
+            # print(f"Updated book with id {book.id}")
+            updated_book = Book(**book.model_dump())
+            BOOKS[i] = updated_book
+            book_changed = True
+            break
+
+    if not book_changed:
+        raise HTTPException(status_code=404, detail=f"Book with id {book.id} not found")
 
 
-@app.delete("/books/{book_id}")
-async def delete_book(book_id: int):
+@app.delete("/books/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book(book_id: int = Path(gt=0)):
+    book_changed = False
     for i in range(len(BOOKS)):
         if BOOKS[i].id == book_id:
             BOOKS.pop(i)
+            book_changed = True
             break
+
+    if not book_changed:
+        raise HTTPException(status_code=404, detail=f"Book with id {book_id} not found")
