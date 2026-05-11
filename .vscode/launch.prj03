@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Uvicorn (TodoApp)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "main:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000",
+        "--app-dir",
+        "${workspaceFolder}/Project 03/TodoApp"
+      ],
+      "cwd": "${workspaceFolder}/Project 03/TodoApp",
+      "justMyCode": true
+    }
+  ]
+}
